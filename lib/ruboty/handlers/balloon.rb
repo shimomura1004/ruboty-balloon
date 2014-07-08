@@ -3,6 +3,8 @@
 module Ruboty
   module Handlers
     class Balloon < Base
+      env :BALLOON_RESPONSE_STYLE, "asakusasatellite: Use 'text' style for AS", optional: true
+
       on /(?<incident>突然の.+)/, name: "balloon", description: "突然の…"
       on /balloon (?<incident>.+)/, name: "balloon", description: "balloon the message"
 
@@ -12,12 +14,13 @@ module Ruboty
 
       private
       def generate(message)
-        lines = message.split
-        max_line_length = lines.map{|line| calcLength(line)}.max
+        length = calcLength(message)
 
-        ([upper_line(max_line_length)] +
-         lines.map{|line| middle_line(max_line_length, line)} +
-         [lower_line(max_line_length)]).join("\n")
+        (asakusasatellite? ? "text::\n" : "") +
+        [ upper_line(length),
+          middle_line(length, message),
+          lower_line(length)
+        ].join("\n")
       end
 
       def calcLength(str)
@@ -37,6 +40,10 @@ module Ruboty
       def lower_line(length)
         ys = ("Y^" * (length / 2))[0...((length + 1) / 2)]
         "￣" + ys + "" + ys.reverse + "￣"
+      end
+
+      def asakusasatellite?
+         ENV['BALLOON_RESPONSE_STYLE'] == 'asakusasatellite'
       end
     end
   end
